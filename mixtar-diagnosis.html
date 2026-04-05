@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>🌙 ミクスタ夜の生き物診断</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&family=Kaisei+Decol:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night: #0a0e1a;
+    --deep: #0f1628;
+    --card: #141c35;
+    --accent1: #4fc3f7;
+    --accent2: #f48fb1;
+    --accent3: #ffe082;
+    --accent4: #a5d6a7;
+    --text: #e8eaf6;
+    --subtext: #90a4c8;
+    --glow: rgba(79, 195, 247, 0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--night);
+    color: var(--text);
+    font-family: 'Zen Maru Gothic', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Stars background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 40%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 20%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 20% 80%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 85%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 45%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 70%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(2px 2px at 75% 30%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 5% 55%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 95% 75%, rgba(255,255,255,0.3) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 0 60px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 40px 24px 32px;
+  }
+
+  .header-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(79,195,247,0.2), rgba(244,143,177,0.2));
+    border: 1px solid rgba(79,195,247,0.3);
+    border-radius: 20px;
+    padding: 6px 18px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--accent1);
+    margin-bottom: 16px;
+  }
+
+  .header h1 {
+    font-family: 'Kaisei Decol', serif;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.3;
+    background: linear-gradient(135deg, #e8eaf6, var(--accent1), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+  }
+
+  .header p {
+    font-size: 13px;
+    color: var(--subtext);
+    line-height: 1.7;
+  }
+
+  /* Progress */
+  .progress-wrap {
+    padding: 0 24px 20px;
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--subtext);
+    margin-bottom: 8px;
+  }
+
+  .progress-bar {
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent1), var(--accent2));
+    border-radius: 2px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Question card */
+  .question-card {
+    margin: 0 16px;
+    background: var(--card);
+    border: 1px solid rgba(79,195,247,0.15);
+    border-radius: 24px;
+    padding: 28px 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+  .question-emoji {
+    font-size: 40px;
+    text-align: center;
+    margin-bottom: 16px;
+    animation: floatEmoji 3s ease-in-out infinite;
+  }
+
+  @keyframes floatEmoji {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+
+  .question-text {
+    font-size: 17px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.5;
+    margin-bottom: 24px;
+    color: var(--text);
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .option-btn {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 14px 18px;
+    color: var(--text);
+    font-family: 'Zen Maru Gothic', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .option-btn:hover {
+    background: rgba(79,195,247,0.1);
+    border-color: rgba(79,195,247,0.4);
+    transform: translateX(4px);
+  }
+
+  .option-btn.selected {
+    background: rgba(79,195,247,0.15);
+    border-color: var(--accent1);
+    color: var(--accent1);
+  }
+
+  .option-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  /* Next button */
+  .next-btn {
+    display: block;
+    width: calc(100% - 32px);
+    margin: 16px 16px 0;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--accent1), #0288d1);
+    border: none;
+    border-radius: 16px;
+    color: white;
+    font-family: 'Zen Maru Gothic', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 8px 24px rgba(79,195,247,0.3);
+  }
+
+  .next-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(79,195,247,0.4); }
+  .next-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+  /* Loading */
+  .loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    gap: 24px;
+  }
+
+  .loading-orb {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(79,195,247,0.8), rgba(79,195,247,0.1));
+    box-shadow: 0 0 40px rgba(79,195,247,0.5);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.15); opacity: 1; }
+  }
+
+  .loading-text {
+    font-size: 14px;
+    color: var(--subtext);
+    text-align: center;
+    animation: blink 1.5s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  /* Result card */
+  .result-wrap {
+    padding: 0 16px;
+    animation: slideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .result-card {
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+    position: relative;
+  }
+
+  .result-header {
+    padding: 32px 24px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .result-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, var(--char-color-glow, rgba(79,195,247,0.3)) 0%, transparent 70%);
+  }
+
+  .result-emoji-big {
+    font-size: 72px;
+    display: block;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 0 20px var(--char-color, rgba(79,195,247,0.8)));
+    animation: floatEmoji 3s ease-in-out infinite;
+  }
+
+  .result-type-label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--char-color, var(--accent1));
+    margin-bottom: 8px;
+  }
+
+  .result-name {
+    font-family: 'Kaisei Decol', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 8px;
+  }
+
+  .result-catch {
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.6;
+    font-style: italic;
+  }
+
+  .result-body {
+    background: var(--card);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .result-section {
+    background: rgba(255,255,255,0.04);
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--subtext);
+    margin-bottom: 8px;
+  }
+
+  .section-content {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  .fortune-text {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent3);
+    margin-bottom: 6px;
+  }
+
+  .compatibility-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(165,214,167,0.15);
+    border: 1px solid rgba(165,214,167,0.3);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+    color: var(--accent4);
+    margin-bottom: 8px;
+  }
+
+  .drink-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(244,143,177,0.15);
+    border: 1px solid rgba(244,143,177,0.3);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+    color: var(--accent2);
+  }
+
+  .retry-btn {
+    display: block;
+    width: 100%;
+    margin-top: 20px;
+    padding: 14px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 14px;
+    color: var(--subtext);
+    font-family: 'Zen Maru Gothic', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .retry-btn:hover {
+    border-color: rgba(255,255,255,0.3);
+    color: var(--text);
+  }
+
+  .share-hint {
+    text-align: center;
+    font-size: 11px;
+    color: var(--subtext);
+    margin-top: 12px;
+    opacity: 0.7;
+  }
+
+  /* Section transitions */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* Error */
+  .error-box {
+    margin: 0 16px;
+    background: rgba(244,67,54,0.1);
+    border: 1px solid rgba(244,67,54,0.3);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    font-size: 14px;
+    color: #ef9a9a;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- START -->
+  <div id="startSection" class="section active">
+    <div class="header">
+      <div class="header-badge">🌙 MIXTAR NIGHT 2026.5.9</div>
+      <h1>夜の生き物<br>キャラ診断</h1>
+      <p>今夜のあなたは、どんな夜の生き物？<br>5つの質問に答えて、あなたのキャラを解き明かそう。</p>
+    </div>
+    <div style="margin: 0 16px;">
+      <button class="next-btn" onclick="startQuiz()">✨ 診断スタート</button>
+    </div>
+    <div style="text-align:center; margin-top: 20px; font-size: 12px; color: var(--subtext);">所要時間：約1〜2分</div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="quizSection" class="section">
+    <div class="header" style="padding-bottom: 16px;">
+      <div class="header-badge">🌙 MIXTAR NIGHT 2026.5.9</div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span id="progressLabel">質問 1 / 5</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="question-card" id="questionCard">
+      <div class="question-emoji" id="qEmoji"></div>
+      <div class="question-text" id="qText"></div>
+      <div class="options" id="optionsWrap"></div>
+    </div>
+    <button class="next-btn" id="nextBtn" onclick="nextQuestion()" disabled>次へ →</button>
+  </div>
+
+  <!-- LOADING -->
+  <div id="loadingSection" class="section">
+    <div class="loading">
+      <div class="loading-orb"></div>
+      <div class="loading-text" id="loadingText">夜の星座を読み取っています…</div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="resultSection" class="section">
+    <div class="header" style="padding-bottom: 16px;">
+      <div class="header-badge">🌙 あなたの診断結果</div>
+    </div>
+    <div class="result-wrap">
+      <div class="result-card" id="resultCard">
+        <div class="result-header" id="resultHeader">
+          <span class="result-emoji-big" id="resultEmoji"></span>
+          <div class="result-type-label">TONIGHT'S CHARACTER</div>
+          <div class="result-name" id="resultName"></div>
+          <div class="result-catch" id="resultCatch"></div>
+        </div>
+        <div class="result-body">
+          <div class="result-section">
+            <div class="section-label">⭐ 今夜の運勢</div>
+            <div class="fortune-text" id="fortuneTitle"></div>
+            <div class="section-content" id="fortuneText"></div>
+          </div>
+          <div class="result-section">
+            <div class="section-label">💘 相性のいいキャラ</div>
+            <div id="compatibilityTag"></div>
+            <div class="section-content" id="compatibilityText"></div>
+          </div>
+          <div class="result-section">
+            <div class="section-label">🍺 今夜のおすすめドリンク</div>
+            <div id="drinkTag"></div>
+            <div class="section-content" id="drinkText"></div>
+          </div>
+        </div>
+      </div>
+      <button class="retry-btn" onclick="resetQuiz()">🔄 もう一度診断する</button>
+      <div class="share-hint">📸 スクリーンショットで保存して交流のきっかけに！</div>
+    </div>
+  </div>
+
+  <!-- ERROR -->
+  <div id="errorSection" class="section">
+    <div style="padding: 40px 0;">
+      <div class="error-box" id="errorBox">エラーが発生しました</div>
+      <button class="retry-btn" style="margin: 16px;" onclick="resetQuiz()">🔄 最初からやり直す</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const questions = [
+  {
+    emoji: "🌙",
+    text: "夜のパーティー、あなたはどう過ごすタイプ？",
+    options: [
+      { icon: "🔥", text: "中心にいてみんなを巻き込む派！" },
+      { icon: "🌊", text: "流れに乗って自然に盛り上がる派" },
+      { icon: "🔭", text: "面白い人を見つけてじっくり話す派" },
+      { icon: "🍃", text: "気が合う少人数でゆっくりしたい派" }
+    ]
+  },
+  {
+    emoji: "🥂",
+    text: "ビールとシャンパン、どっちから飲み始める？",
+    options: [
+      { icon: "🍺", text: "ビールで一気にテンション上げたい！" },
+      { icon: "🥂", text: "シャンパンで優雅にスタートでしょ" },
+      { icon: "🤔", text: "まずは状況を見てから決める" },
+      { icon: "🍹", text: "ハイボールで安定感重視" }
+    ]
+  },
+  {
+    emoji: "⚽",
+    text: "スタジアムで観戦するなら？",
+    options: [
+      { icon: "📣", text: "ゴール裏でサポーターと声を張り上げる" },
+      { icon: "🎯", text: "バックスタンドで試合を戦術的に観る" },
+      { icon: "📸", text: "カメラ席で最高のシーンを狙う" },
+      { icon: "🍟", text: "VIPルームで飲み食いしながら観る" }
+    ]
+  },
+  {
+    emoji: "🌃",
+    text: "初対面の人に話しかけるとき、きっかけにするのは？",
+    options: [
+      { icon: "😄", text: "笑顔で「今日楽しいですね！」とシンプルに" },
+      { icon: "🎲", text: "面白い質問で「え！それってどういう意味？」と引く" },
+      { icon: "🤝", text: "共通の知り合いや話題を探す" },
+      { icon: "🍻", text: "お酒を勧めながら自然に近づく" }
+    ]
+  },
+  {
+    emoji: "✨",
+    text: "今夜のこのパーティー、何を持って帰りたい？",
+    options: [
+      { icon: "👫", text: "新しい友達・仲間" },
+      { icon: "💡", text: "面白い発見や刺激" },
+      { icon: "📸", text: "最高の思い出と写真" },
+      { icon: "🔥", text: "「また来たい！」という感覚" }
+    ]
+  }
+];
+
+const characters = [
+  {
+    name: "🦅 夜空のタカ",
+    nameText: "夜空のタカ",
+    emoji: "🦅",
+    catch: "高みから見渡し、狙いを定めて一気に行動する",
+    color: "#4fc3f7",
+    glow: "rgba(79,195,247,0.3)",
+    bg: "linear-gradient(135deg, #0d2137, #1a3a5c)",
+    fortune: "🌟 今夜の引力は最強",
+    traits: [0, 1, 2]
+  },
+  {
+    name: "🦉 深夜のフクロウ",
+    nameText: "深夜のフクロウ",
+    emoji: "🦉",
+    catch: "静かに全てを見通す、知恵と洞察の使い手",
+    color: "#ce93d8",
+    glow: "rgba(206,147,216,0.3)",
+    bg: "linear-gradient(135deg, #1a0d2e, #2d1b4e)",
+    fortune: "🔮 今夜の洞察力は神がかり的",
+    traits: [2, 3]
+  },
+  {
+    name: "🐬 真夜中のイルカ",
+    nameText: "真夜中のイルカ",
+    emoji: "🐬",
+    catch: "波を作り、周りを笑顔にする天才エンターテイナー",
+    color: "#4dd0e1",
+    glow: "rgba(77,208,225,0.3)",
+    bg: "linear-gradient(135deg, #0d2130, #0e3a4a)",
+    fortune: "🌊 今夜の流れはあなたが作る",
+    traits: [0, 3]
+  },
+  {
+    name: "🦊 宵闇のキツネ",
+    nameText: "宵闇のキツネ",
+    emoji: "🦊",
+    catch: "場の空気を読み、絶妙なタイミングで動く策士",
+    color: "#ffb74d",
+    glow: "rgba(255,183,77,0.3)",
+    bg: "linear-gradient(135deg, #2e1a0d, #4a2f0e)",
+    fortune: "🍀 今夜の運勢は読んだ通りに展開する",
+    traits: [1, 2]
+  },
+  {
+    name: "🦋 夜の蝶",
+    nameText: "夜の蝶",
+    emoji: "🦋",
+    catch: "光に引き寄せられ、その場を美しく彩る存在",
+    color: "#f48fb1",
+    glow: "rgba(244,143,177,0.3)",
+    bg: "linear-gradient(135deg, #2e0d1a, #4a1528)",
+    fortune: "💫 今夜はあなたがいちばん輝く",
+    traits: [0, 1]
+  },
+  {
+    name: "🐺 月夜の狼",
+    nameText: "月夜の狼",
+    emoji: "🐺",
+    catch: "仲間と共に駆け抜ける、熱い絆の守り手",
+    color: "#a5d6a7",
+    glow: "rgba(165,214,167,0.3)",
+    bg: "linear-gradient(135deg, #0d1a0e, #152b16)",
+    fortune: "🌕 今夜の仲間運は満月級",
+    traits: [3, 4]
+  }
+];
+
+const fortuneDetails = [
+  "今夜は誰に声をかけても縁がつながる吉夜。直感を信じて積極的に動いて！",
+  "じっくり話した相手が、のちに大切なキーパーソンになる予感。深い会話を大切に。",
+  "予期せぬ出会いが今夜のハイライト。流れに身を任せると面白い展開が待っている。",
+  "いつも以上に言葉が冴えている夜。あなたの一言が場を盛り上げるきっかけになる。",
+  "今夜は少し大胆に！いつもより一歩踏み込んだアクションが新しい扉を開く。",
+  "チームワークが最高潮。グループの中心にいることで才能が輝き出す一夜。"
+];
+
+const compatibilities = [
+  { name: "🦊 宵闇のキツネ", reason: "お互いの戦略眼が噛み合い、二人でいると会話が止まらない！" },
+  { name: "🐬 真夜中のイルカ", reason: "深さと明るさのバランスが絶妙。一緒にいると最高のチームになる！" },
+  { name: "🦅 夜空のタカ", reason: "行動力と洞察力のコンビ。お互いの弱点を補い合えるベストパートナー！" },
+  { name: "🦋 夜の蝶", reason: "華やかさと知的さが融合。一緒にいるだけで場が盛り上がる最強コンビ！" },
+  { name: "🐺 月夜の狼", reason: "熱い魂同士の共鳴。語り合うと止まらなくなる危険なコンビ！" },
+  { name: "🦉 深夜のフクロウ", reason: "行動力と洞察力の黄金コンビ。お互いを刺激し合い、化学反応が起きる！" }
+];
+
+const drinks = [
+  { name: "🥂 シャンパン", desc: "今夜の高揚感にぴったり。一気に特別な夜を演出してくれる一杯。" },
+  { name: "🍺 クラフトビール", desc: "ゆっくり味わうほど深みが出る。あなたの知的な夜にマッチ。" },
+  { name: "🍹 ハイボール", desc: "爽快でどんな人とも楽しめる万能ドリンク。今夜のあなたのコミュ力をさらにUP！" },
+  { name: "🥃 ウイスキーロック", desc: "一歩引いたポジションから場を楽しむあなたに。渋くて格好いい選択。" },
+  { name: "🍷 スパークリングワイン", desc: "華やかで社交的。パーティーの主役に相応しい一杯。" },
+  { name: "🍺 生ビール", desc: "まず一杯でエンジン全開！今夜の盛り上がりはあなたが作る。" }
+];
+
+let currentQ = 0;
+let answers = [];
+let selectedOption = null;
+
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startQuiz() {
+  currentQ = 0;
+  answers = [];
+  showSection('quizSection');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = questions[currentQ];
+  document.getElementById('qEmoji').textContent = q.emoji;
+  document.getElementById('qText').textContent = q.text;
+
+  const pct = Math.round((currentQ / questions.length) * 100);
+  document.getElementById('progressLabel').textContent = `質問 ${currentQ + 1} / ${questions.length}`;
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  const wrap = document.getElementById('optionsWrap');
+  wrap.innerHTML = '';
+  selectedOption = null;
+  document.getElementById('nextBtn').disabled = true;
+
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-icon">${opt.icon}</span><span>${opt.text}</span>`;
+    btn.onclick = () => selectOption(i);
+    wrap.appendChild(btn);
+  });
+}
+
+function selectOption(i) {
+  selectedOption = i;
+  document.querySelectorAll('.option-btn').forEach((btn, idx) => {
+    btn.classList.toggle('selected', idx === i);
+  });
+  document.getElementById('nextBtn').disabled = false;
+}
+
+function nextQuestion() {
+  if (selectedOption === null) return;
+  answers.push(selectedOption);
+
+  if (currentQ < questions.length - 1) {
+    currentQ++;
+    renderQuestion();
+  } else {
+    showSection('loadingSection');
+    runDiagnosis();
+  }
+}
+
+function runDiagnosis() {
+  const loadingMessages = [
+    "夜の星座を読み取っています…",
+    "あなたのオーラを解析中…",
+    "今夜の運命を紐解いています…",
+    "キャラクターが目覚めようとしています…"
+  ];
+  let mi = 0;
+  const lt = document.getElementById('loadingText');
+  const interval = setInterval(() => {
+    mi = (mi + 1) % loadingMessages.length;
+    lt.textContent = loadingMessages[mi];
+  }, 700);
+
+  // Score-based character selection
+  const score = answers.reduce((sum, a) => sum + a, 0);
+  const charIdx = score % characters.length;
+  const fortuneIdx = answers[4] % fortuneDetails.length;
+  const compatIdx = (charIdx + 2) % compatibilities.length;
+  const drinkIdx = (answers[1] + answers[2]) % drinks.length;
+
+  // Call Claude API
+  const char = characters[charIdx];
+  const prompt = `あなたはパーティーキャラクター診断AIです。以下の情報を元に、結果を返してください。
+
+キャラクター: ${char.nameText}
+キャッチコピー: ${char.catch}
+
+次の内容を日本語で、短く・ポジティブ・パーティーらしい文体で生成してください:
+1. 今夜の運勢タイトル（8文字以内、絵文字1つ付き）
+2. 運勢の詳細（50文字以内）
+3. 相性のいいキャラとその理由（30文字以内）
+4. おすすめドリンクとその理由（30文字以内）
+
+JSON形式のみで返してください（他の文章なし）:
+{"fortuneTitle":"","fortuneDetail":"","compatName":"","compatReason":"","drinkName":"","drinkReason":""}`;
+
+  fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1000,
+      messages: [{ role: "user", content: prompt }]
+    })
+  })
+  .then(r => r.json())
+  .then(data => {
+    clearInterval(interval);
+    const text = data.content.map(i => i.text || "").join("").trim();
+    let parsed;
+    try {
+      const clean = text.replace(/```json|```/g, "").trim();
+      parsed = JSON.parse(clean);
+    } catch(e) {
+      // Fallback to pre-generated content
+      parsed = {
+        fortuneTitle: char.fortune,
+        fortuneDetail: fortuneDetails[fortuneIdx],
+        compatName: compatibilities[compatIdx].name,
+        compatReason: compatibilities[compatIdx].reason,
+        drinkName: drinks[drinkIdx].name,
+        drinkReason: drinks[drinkIdx].desc
+      };
+    }
+    showResult(char, parsed);
+  })
+  .catch(() => {
+    clearInterval(interval);
+    const char = characters[charIdx];
+    const fallback = {
+      fortuneTitle: char.fortune,
+      fortuneDetail: fortuneDetails[fortuneIdx],
+      compatName: compatibilities[compatIdx].name,
+      compatReason: compatibilities[compatIdx].reason,
+      drinkName: drinks[drinkIdx].name,
+      drinkReason: drinks[drinkIdx].desc
+    };
+    showResult(char, fallback);
+  });
+}
+
+function showResult(char, data) {
+  const card = document.getElementById('resultCard');
+  const header = document.getElementById('resultHeader');
+
+  header.style.background = char.bg;
+  card.style.setProperty('--char-color', char.color);
+  card.style.setProperty('--char-color-glow', char.glow);
+
+  document.getElementById('resultEmoji').textContent = char.emoji;
+  document.getElementById('resultName').textContent = char.name;
+  document.getElementById('resultCatch').textContent = char.catch;
+
+  document.getElementById('fortuneTitle').textContent = data.fortuneTitle;
+  document.getElementById('fortuneText').textContent = data.fortuneDetail;
+
+  document.getElementById('compatibilityTag').innerHTML = `<div class="compatibility-tag">💘 ${data.compatName}</div>`;
+  document.getElementById('compatibilityText').textContent = data.compatReason;
+
+  document.getElementById('drinkTag').innerHTML = `<div class="drink-tag">${data.drinkName}</div>`;
+  document.getElementById('drinkText').textContent = data.drinkReason;
+
+  showSection('resultSection');
+}
+
+function resetQuiz() {
+  startQuiz();
+}
+</script>
+</body>
+</html>
