@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>デバッグテスト | MIXTAR NIGHT 2026</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: sans-serif; padding: 24px 16px; background: #0f0f1e; color: #eee; }
+h2 { font-size: 20px; margin-bottom: 8px; }
+p { font-size: 13px; color: #888; margin-bottom: 20px; }
+button {
+  display: block;
+  width: 100%; max-width: 400px;
+  background: #1a3060;
+  color: #c0d8f0;
+  border: 1px solid rgba(100,160,220,0.4);
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 15px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  text-align: left;
+}
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+.log {
+  background: #0a0a18;
+  border-left: 4px solid #444;
+  border-radius: 4px;
+  padding: 10px 14px;
+  margin: 6px 0;
+  font-size: 13px;
+  font-family: monospace;
+  word-break: break-all;
+  max-width: 400px;
+}
+.ok { border-color: #2a8; color: #4d4; }
+.err { border-color: #a22; color: #f66; }
+.info { border-color: #448; color: #aac; }
+</style>
+</head>
+<body>
+<h2>🔧 Firebase 接続テスト</h2>
+<p>ボタンを順番に押して、どこで止まるか確認してください</p>
+
+<button id="btn1" onclick="step1()">① Firebase 初期化テスト</button>
+<button id="btn2" onclick="step2()" disabled>② テキスト書き込みテスト</button>
+<button id="btn3" onclick="step3()" disabled>③ 画像データ書き込みテスト</button>
+
+<div id="logs"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, push, get, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const config = {
+  apiKey: "AIzaSyAHubbfHAewDWar-XxuL3q_n-hZZs4_uTs",
+  authDomain: "mikusuta-night-2026.firebaseapp.com",
+  databaseURL: "https://mikusuta-night-2026-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "mikusuta-night-2026",
+  storageBucket: "mikusuta-night-2026.firebasestorage.app",
+  messagingSenderId: "618005165983",
+  appId: "1:618005165983:web:0a36dcf44ca19838baafaa"
+};
+
+let app, db;
+
+function log(msg, type) {
+  const el = document.createElement('div');
+  el.className = 'log ' + (type || 'info');
+  el.textContent = msg;
+  document.getElementById('logs').appendChild(el);
+}
+
+window.step1 = async function() {
+  document.getElementById('btn1').disabled = true;
+  log('Firebase を初期化中...', 'info');
+  try {
+    app = initializeApp(config);
+    db = getDatabase(app);
+    log('✅ 初期化 成功！', 'ok');
+    log('データベースへの接続を確認中...', 'info');
+    await get(ref(db, '.info/connected'));
+    log('✅ データベース接続 成功！', 'ok');
+    document.getElementById('btn2').disabled = false;
+  } catch(e) {
+    log('❌ エラー: ' + e.message, 'err');
+    log('→ databaseURL が間違っている可能性があります', 'err');
+  }
+};
+
+window.step2 = async function() {
+  document.getElementById('btn2').disabled = true;
+  log('テキストを書き込み中...', 'info');
+  try {
+    await push(ref(db, 'test'), { msg: 'hello', time: serverTimestamp() });
+    log('✅ テキスト書き込み 成功！', 'ok');
+    document.getElementById('btn3').disabled = false;
+  } catch(e) {
+    log('❌ 書き込みエラー: ' + e.message, 'err');
+    log('→ Realtime DB のルールを確認してください', 'err');
+    log('  Firebase Console → Realtime Database → ルール', 'err');
+    log('  ".write": true になっているか確認', 'err');
+  }
+};
+
+window.step3 = async function() {
+  document.getElementById('btn3').disabled = true;
+  log('テスト画像を生成中...', 'info');
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = 100; canvas.height = 100;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#1a3060'; ctx.fillRect(0, 0, 100, 100);
+    ctx.fillStyle = '#fff'; ctx.font = '16px sans-serif'; ctx.fillText('TEST', 28, 55);
+    const b64 = canvas.toDataURL('image/jpeg', 0.5);
+    log('テスト画像サイズ: ' + Math.round(b64.length / 1024) + ' KB', 'info');
+    log('画像データを書き込み中...', 'info');
+    await push(ref(db, 'photos'), { image: b64, nickname: 'テスト', timestamp: serverTimestamp() });
+    log('✅ 画像書き込み 成功！！', 'ok');
+    log('🎉 全テスト通過！photo-upload.html で写真を送れるはずです', 'ok');
+  } catch(e) {
+    log('❌ 画像書き込みエラー: ' + e.message, 'err');
+  }
+};
+</script>
+</body>
+</html>
